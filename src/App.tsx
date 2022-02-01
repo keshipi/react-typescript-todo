@@ -1,97 +1,59 @@
-import React, { useState } from 'react'
-
-type Todo = {
-  value: string
-  readonly id: number
-  checked: boolean
-  removed: boolean
-}
-type Filter = 'all' | 'checked' | 'unchecked' | 'removed';
+import { useReducer } from 'react'
+import { reducer } from './reducer'
+import { initialState } from './initialState'
 
 function App() {
-  const [text, setText] = useState('')
-  const [todos, setTodos] = useState<Todo[]>([])
-  const [filter, setFilter] = useState<Filter>('all')
+  const [state, dispatch] = useReducer(reducer, initialState)
 
   const handleOnSubmit = () => {
-    if (!text) return
-
-    const newTodo: Todo = {
-      value: text,
-      id: new Date().getTime(),
-      checked: false,
-      removed: false
-    }
-
-    setTodos([newTodo, ...todos])
-    setText('')
+    dispatch({ type: 'submit' })
   }
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setText(e.target.value)
+    dispatch({ type: 'change', text: e.target.value })
   }
   const handleOnEdit = (id: number, value: string) => {
-    const deepCopy = todos.map((todo) => ({ ...todo }))
-    const newTodos = deepCopy.map((todo) => {
-      if(todo.id === id ) {
-        todo.value = value
-      }
-      return todo
-    })
-    setTodos(newTodos)
+    dispatch({ type: 'edit', id, value })
   }
   const handleOnCheck = (id: number, checked: boolean) => {
-    const deepCopy = todos.map((todo) => ({ ...todo }))
-
-    const newTodos = deepCopy.map((todo) => {
-      if (todo.id === id) {
-        todo.checked = !checked
-      }
-      return todo                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-    })
-    setTodos(newTodos)
+    dispatch({ type: 'check', id, checked })
   }
   const handleOnRemove = (id: number, removed: boolean) => {
-    const deepCopy = todos.map((todo) => ({ ...todo }))
-
-    const newTodos = deepCopy.map((todo) => {
-      if (todo.id === id) {
-        todo.removed = !removed
-      }
-      return todo                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-    })
-    setTodos(newTodos)
+    dispatch({ type: 'remove', id, removed })
   }
   const handleOnEmpty = () => {
-    const newTodos = todos.filter((todo) => !todo.removed)
-    setTodos(newTodos)
+    dispatch({ type: 'empty' })
   }
-  const filterdTodos = todos.filter((todo) => {
-    switch (filter) {
+  const handleOnFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    dispatch({ type: 'filter', filter: e.target.value as Filter });
+  };
+
+  const filteredTodos = state.todos.filter((todo) => {
+    switch (state.filter) {
       case 'all':
-        return !todo.removed
+        return !todo.removed;
       case 'checked':
-        return todo.checked && !todo.removed!
+        return todo.checked && !todo.removed;
       case 'unchecked':
-        return !todo.checked && !todo.removed
+        return !todo.checked && !todo.removed;
       case 'removed':
-        return todo.removed
+        return todo.removed;
       default:
-        return todo
+        return todo;
     }
-  })
+  });
 
   return (
     <div>
-      <select defaultValue="all" onChange={(e) => setFilter(e.target.value as Filter)}>
-      <option value="all">全てのタスク</option>
-      <option value="checked">完了した  タスク</option>
-      <option value="unchecked">現在ののタスク</option>
-      <option value="removed">ゴミ箱</option>
+      <select defaultValue="all" onChange={handleOnFilter}>
+        <option value="all">全てのタスク</option>
+        <option value="checked">完了した  タスク</option>
+        <option value="unchecked">現在ののタスク</option>
+        <option value="removed">ゴミ箱</option>
       </select>
-      {filter === 'removed' ? (
+      {state.filter === 'removed' ? (
         <button
           onClick={handleOnEmpty}
-          disabled={todos.filter((todo) => todo.removed).length === 0}
+          disabled={state.todos.filter((todo) => todo.removed).length === 0}
         >
           ゴミ箱をからにする
         </button>
@@ -104,20 +66,20 @@ function App() {
         >
           <input
             type="text"
-            value={text}
+            value={state.text}
             onChange={(e) => handleOnChange(e)}
-            disabled={filter === 'checked'}
+            disabled={state.filter === 'checked'}
           />
           <input
             type="submit"
             value="追加"
             onSubmit={handleOnSubmit}
-            disabled={filter === 'checked'}
+            disabled={state.filter === 'checked'}
           />
         </form>
       )}
       <ul>
-        {filterdTodos.map((todo) => {
+        {filteredTodos.map((todo) => {
           return (
             <li key={todo.id}>
               <input
