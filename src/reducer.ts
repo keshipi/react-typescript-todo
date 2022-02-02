@@ -21,7 +21,7 @@ export const reducer = (state: State, action: Action): State => {
 
       const newTodos = deepCopy.map((todo) => {
         if (todo.id === action.id) {
-          todo.checked = !action.value
+          todo.value = action.value
         }
         return todo
       })
@@ -38,7 +38,7 @@ export const reducer = (state: State, action: Action): State => {
 
       const newTodos = deepCopy.map((todo) => {
         if (todo.id === action.id) {
-          todo.checked = !action.removed
+          todo.removed = !action.removed
         }
         return todo
       })
